@@ -9,6 +9,7 @@ var level = 1
 var levelTxt
 var livesTxt
 var gameover
+var background
 document.onkeydown = function (e) {
   switch(e.key) {
     case 'ArrowUp': {
@@ -53,6 +54,7 @@ document.onkeyup = function (e) {
 function startGame() {
   player = new component(30, 30, "img/player.png", 10, 120, "image")
   enemy = new component(30, 30, "img/enemy.png", game.canvas.width, Math.floor(Math.random() * game.canvas.height), "image")
+  background = new component(960, 270, "img/background.png", 0,0, "background")
   scoreTxt = new component("24px", "Consolas", "black", 280, 40, "text")
   livesTxt = new component("24px", "Consolas", "black", 30, 40, "text")
   levelTxt = new component("24px", "Consolas", "black", 140, 40, "text")
@@ -79,7 +81,7 @@ var game = {
 }
 function component(width, height, color, x, y, type) {
   this.type = type
-  if(type == "image") {
+  if(type == "image" || type == "background") {
     this.image = new Image()
     this.image.src = color
   }
@@ -96,7 +98,7 @@ function component(width, height, color, x, y, type) {
       ctx.fillStyle = color
       ctx.fillText(this.text, this.x, this.y)
     }
-    if(type == "image") {
+    if(type == "image" || type == "background") {
         ctx.drawImage(this.image,
                       this.x,
                       this.y,
@@ -124,6 +126,11 @@ function component(width, height, color, x, y, type) {
   this.newPosition = function() {
     this.x += this.deltaX
     this.y += this.deltaY
+    if(this.type == "background") {
+      if(this.x == -(this.width)) {
+        this.x = 0
+      }
+    }
   }
 }
 
@@ -133,15 +140,14 @@ function updateGame() {
   var enemyHeight = Math.floor(Math.random() * game.canvas.height)
   var scoreWidth = Math.floor(Math.random() * game.canvas.width)
     if(player.collision(enemy)) {
-      lives--
-      enemy.x = canvas.width
+      lives = lives -1
+      enemy.x = game.canvas.width
       enemy.y = Math.floor(Math.random() * game.canvas.height)
       if(lives == 0)
       {
-        livesTxt.text =  "Lives: " + lives
-        game.stop()
-        gameover = new component("24px", "Consolas", "black", 30, 40, "text")
+        gameover = new component("24px", "Consolas", "black", game.canvas.width/2, game.canvas.height/2, "text")
         gameover.text = "Game Over"
+        game.stop()
         return
       }
     }
@@ -159,6 +165,9 @@ function updateGame() {
     }
   }
   game.clear()
+  background.deltaX = -1
+  background.newPosition()
+  background.update()
   enemyHeight = Math.floor(Math.random() * game.canvas.height)
   scoreWidth = Math.floor(Math.random() * game.canvas.width)
   game.frames++
@@ -167,14 +176,14 @@ function updateGame() {
     levelTxt.text = "Level: " + level
   }
   scoreObj.push(new component(30, 30, "img/moreScore.png", scoreWidth, 0, "image"))
-    enemy.x -= 1 * level * 12
+    enemy.x -= 1 * level * 4
   if(enemy.x < 0) {
     enemy.x = game.canvas.width
     enemy.y = Math.floor(Math.random() * game.canvas.height)
   }
     enemy.update()
   for(i=0;i<scoreObj.length;i++) {
-    if(i > 5) break
+    if(i > 500) break
     scoreObj[i].y += 1 * level * 2
     if(scoreObj[i].y > game.canvas.height) {
       scoreObj[i].y = 0
