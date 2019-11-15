@@ -3,10 +3,37 @@ var player
 var enemy = []
 var scoreObj = []
 var score
+var scoreTxt
 var request
 var level = 1
+var levelTxt
+var livesTxt
+document.onkeydown = function (e) {
+  switch(e.key) {
+    case 'ArrowUp': {
+      player.deltaY = 1
+      break
+    }
+    case 'ArrowDown': {
+      player.deltaY = -1
+      break
+    }
+    case 'ArrowLeft': {
+      player.deltaX = -1
+      break
+    }
+    case 'ArrowRight': {
+      player.deltaX = 1
+      break
+    }
+  }
+}
 function startGame() {
   player = new component(30, 30, "img/player.png", 10, 120, "image")
+  scoreTxt = new component("30px", "Consolas", "black", 280, 40, "text")
+  livesTxt = new component("30px", "Consolas", "black", 80, 40, "text")
+  levelTxt = new component("30px", "Consolas", "black", 180, 40, "text")
+  
   game.start()
 }
 
@@ -17,6 +44,8 @@ var game = {
     this.canvas.height = 270
     this.context = this.canvas.getContext("2d")
     this.frames = 0
+    
+    request = window.requestAnimationFrame(updateGame)
   },
   clear: function() {
     this.context.clearRect(0,0,this.canvas.width, this.canvas.height)
@@ -39,6 +68,11 @@ function component(width, height, color, x, y, type) {
   this.y = y
   this.update = function() {
     ctx = game.context
+    if(type == "text") {
+      ctx.font = this.width + " " + this.height
+      ctx.fillStyle = color
+      ctx.fillText(this.text, this.x, this.y)
+    }
     if(type == "image") {
       ctx.drawImage(this.image, this.x, this.y, this.width, this.height)
     }
@@ -69,8 +103,8 @@ function component(width, height, color, x, y, type) {
 function updateGame() {
   var x
   var y
-  var enemyHeight = Math.floor(Math.random() * canvas.height)
-  var scoreWidth = Math.floor(Math.random() * canvas.width)
+  var enemyHeight = Math.floor(Math.random() * game.canvas.height)
+  var scoreWidth = Math.floor(Math.random() * game.canvas.width)
   for (i =0;i<enemy.length;i++) {
     if(player.collision(enemy[i])) {
       lives--
@@ -95,15 +129,15 @@ function updateGame() {
       scoreObj[i].y = 0
     }
   }
-  enemyHeight = Math.floor(Math.random() * canvas.height)
-  scoreWidth = Math.floor(Math.random() * canvas.width)
+  enemyHeight = Math.floor(Math.random() * game.canvas.height)
+  scoreWidth = Math.floor(Math.random() * game.canvas.width)
   game.clear()
   game.frames++
   if(frames %1000 == 0) {
     level++
   }
-  enemy.push(new component(30, 30, "img/enemy.png", canvas.width, enemyHeight, "image"))
-  scoreObj.push(new component(30, 30, "img/moreScore.png", canvas.width, enemyHeight, "image"))
+  enemy.push(new component(30, 30, "img/enemy.png", game.canvas.width, enemyHeight, "image"))
+  scoreObj.push(new component(30, 30, "img/moreScore.png", game.canvas.width, enemyHeight, "image"))
   for(i=0;i<enemy.length;i++) {
     enemy[i].x -= 1 * level
     enemy[i].update()
@@ -114,7 +148,12 @@ function updateGame() {
   }
   player.newPosition()
   player.update()
+  scoreTxt.text =  "Score: " + score
+  scoreTxt.update()
+  livesTxt.text =  "Lives: " + lives
+  livesTxt.update()
+  levelTxt.text = "Level: " + level
+  levelTxt.update()
   request = window.requestAnimationFrame(updateGame)
 }
 
-request = window.requestAnimationFrame(updateGame)
