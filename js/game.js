@@ -1,21 +1,22 @@
 var lives = 1
 var player
-var enemy = []
+var enemy
 var scoreObj = []
-var score
+var score = 1
 var scoreTxt
 var request
 var level = 1
 var levelTxt
 var livesTxt
+var gameover
 document.onkeydown = function (e) {
   switch(e.key) {
     case 'ArrowUp': {
-      player.deltaY = 1
+      player.deltaY = -1
       break
     }
     case 'ArrowDown': {
-      player.deltaY = -1
+      player.deltaY = 1
       break
     }
     case 'ArrowLeft': {
@@ -28,11 +29,33 @@ document.onkeydown = function (e) {
     }
   }
 }
+document.onkeyup = function (e) {
+  switch(e.key) {
+    case 'ArrowUp': {
+      player.deltaY = 0
+      break
+    }
+    case 'ArrowDown': {
+      player.deltaY = 0
+      break
+    }
+    case 'ArrowLeft': {
+      player.deltaX = 0
+      break
+    }
+    case 'ArrowRight': {
+      player.deltaX = 0
+      break
+    }
+      
+  }
+}
 function startGame() {
-  player = new component(30, 30, "green", 10, 120)
-  scoreTxt = new component("30px", "Consolas", "black", 280, 40, "text")
-  livesTxt = new component("30px", "Consolas", "black", 80, 40, "text")
-  levelTxt = new component("30px", "Consolas", "black", 180, 40, "text")
+  player = new component(30, 30, "img/player.png", 10, 120, "image")
+  enemy = new component(30, 30, "img/enemy.png", game.canvas.width, Math.floor(Math.random() * game.canvas.height), "image")
+  scoreTxt = new component("24px", "Consolas", "black", 280, 40, "text")
+  livesTxt = new component("24px", "Consolas", "black", 30, 40, "text")
+  levelTxt = new component("24px", "Consolas", "black", 140, 40, "text")
   
   game.start()
 }
@@ -44,7 +67,7 @@ var game = {
     this.canvas.height = 270
     this.context = this.canvas.getContext("2d")
     this.frames = 0
-    
+        document.body.insertBefore(this.canvas, document.body.childNodes[0]);
     request = window.requestAnimationFrame(updateGame)
   },
   clear: function() {
@@ -74,9 +97,11 @@ function component(width, height, color, x, y, type) {
       ctx.fillText(this.text, this.x, this.y)
     }
     if(type == "image") {
-      this.image.onload = function() {
-        ctx.drawImage(this.image, this.x, this.y, this.width, this.height)
-      }
+        ctx.drawImage(this.image,
+                      this.x,
+                      this.y,
+                      this.width,
+                      this.height)
     }
     else {
       ctx.fillStyle = color
@@ -107,18 +132,19 @@ function updateGame() {
   var y
   var enemyHeight = Math.floor(Math.random() * game.canvas.height)
   var scoreWidth = Math.floor(Math.random() * game.canvas.width)
-  for (i =0;i<enemy.length;i++) {
-    if(player.collision(enemy[i])) {
+    if(player.collision(enemy)) {
       lives--
+      enemy.x = canvas.width
+      enemy.y = Math.floor(Math.random() * game.canvas.height)
       if(lives == 0)
       {
+        livesTxt.text =  "Lives: " + lives
         game.stop()
+        gameover = new component("24px", "Consolas", "black", 30, 40, "text")
+        gameover.text = "Game Over"
         return
       }
-      enemy[i].x = canvas.width
-      enemy[i].y = enemyHeight
     }
-  }
   for (i =0;i<scoreObj.length;i++) {
     if(player.collision(scoreObj[i])) {
       score++
@@ -127,33 +153,41 @@ function updateGame() {
         lives++
         score = 0
       }
-      scoreObj[i].x = scoreWidth
+        scoreTxt.text =  "Score: " + score
+      scoreObj[i].x = Math.floor(Math.random() * game.canvas.width)
       scoreObj[i].y = 0
     }
   }
+  game.clear()
   enemyHeight = Math.floor(Math.random() * game.canvas.height)
   scoreWidth = Math.floor(Math.random() * game.canvas.width)
-  game.clear()
   game.frames++
   if(frames %1000 == 0) {
     level++
+    levelTxt.text = "Level: " + level
   }
-  enemy.push(new component(30, 30, "red", game.canvas.width, enemyHeight))
-  scoreObj.push(new component(30, 30, "blue", scoreWidth, game.canvas.height))
-  for(i=0;i<enemy.length;i++) {
-    enemy[i].x -= 1 * level
-    enemy[i].update()
+  scoreObj.push(new component(30, 30, "img/moreScore.png", scoreWidth, 0, "image"))
+    enemy.x -= 1 * level * 12
+  if(enemy.x < 0) {
+    enemy.x = game.canvas.width
+    enemy.y = Math.floor(Math.random() * game.canvas.height)
   }
+    enemy.update()
   for(i=0;i<scoreObj.length;i++) {
-    scoreObj[i].y -= 1 * level
+    if(i > 5) break
+    scoreObj[i].y += 1 * level * 2
+    if(scoreObj[i].y > game.canvas.height) {
+      scoreObj[i].y = 0
+      scoreObj[i].x = Math.floor(Math.random() * game.canvas.width)
+    }
     scoreObj[i].update()
   }
   player.newPosition()
   player.update()
-  scoreTxt.text =  "Score: " + score
-  scoreTxt.update()
   livesTxt.text =  "Lives: " + lives
   livesTxt.update()
+  scoreTxt.text =  "Score: " + score
+  scoreTxt.update()
   levelTxt.text = "Level: " + level
   levelTxt.update()
   request = window.requestAnimationFrame(updateGame)
