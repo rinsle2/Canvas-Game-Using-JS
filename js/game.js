@@ -29,7 +29,7 @@ document.onkeydown = function (e) {
   }
 }
 function startGame() {
-  player = new component(30, 30, "img/player.png", 10, 120, "image")
+  player = new component(30, 30, "green", 10, 120)
   scoreTxt = new component("30px", "Consolas", "black", 280, 40, "text")
   livesTxt = new component("30px", "Consolas", "black", 80, 40, "text")
   levelTxt = new component("30px", "Consolas", "black", 180, 40, "text")
@@ -74,7 +74,9 @@ function component(width, height, color, x, y, type) {
       ctx.fillText(this.text, this.x, this.y)
     }
     if(type == "image") {
-      ctx.drawImage(this.image, this.x, this.y, this.width, this.height)
+      this.image.onload = function() {
+        ctx.drawImage(this.image, this.x, this.y, this.width, this.height)
+      }
     }
     else {
       ctx.fillStyle = color
@@ -136,8 +138,8 @@ function updateGame() {
   if(frames %1000 == 0) {
     level++
   }
-  enemy.push(new component(30, 30, "img/enemy.png", game.canvas.width, enemyHeight, "image"))
-  scoreObj.push(new component(30, 30, "img/moreScore.png", game.canvas.width, enemyHeight, "image"))
+  enemy.push(new component(30, 30, "red", game.canvas.width, enemyHeight))
+  scoreObj.push(new component(30, 30, "blue", scoreWidth, game.canvas.height))
   for(i=0;i<enemy.length;i++) {
     enemy[i].x -= 1 * level
     enemy[i].update()
